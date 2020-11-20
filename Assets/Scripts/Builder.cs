@@ -14,9 +14,6 @@ public class Builder : MonoBehaviour {
 	float currentRopeHeight = 0f;
 	float targetRopeHeight = 0f;
 
-	bool isPlacingBlock;
-	bool isMakingBlock;
-
 	[Range (0.01f, 10f)]
 	public float xScale;
 	[Range (0.01f, 10f)]
@@ -30,8 +27,8 @@ public class Builder : MonoBehaviour {
 
 	float tip = 3f;
 	
-	public float anchorHeight;
-	float targetAnchorHeight;
+	float anchorHeight;
+	public float targetAnchorHeight;
 
 	public Transform crane;
 	Vector3 craneAnchor;
@@ -51,10 +48,6 @@ public class Builder : MonoBehaviour {
 	public LineRenderer rope;
 
 	public Transform craneShaft;
-
-	public Slider craneHeightSlider;
-
-	float timeElapsedSincePlaced = 0f;
 
 	Vector3 ropeStart;
 	Vector3 ropeEnd;
@@ -81,6 +74,7 @@ public class Builder : MonoBehaviour {
 		joint = GetComponent<ConfigurableJoint>();
 
 		//craneAnchor = transform.position + transform.forward*2.5f + transform.right*2.5f;
+		anchorHeight = targetAnchorHeight;
 	}
 
 	void UpdateRopeLine()
@@ -106,15 +100,13 @@ public class Builder : MonoBehaviour {
 
 	void LockCraneJoint()
 	{
-		targetAnchorHeight = craneHeightSlider.value*50f + 1f;
 		anchorHeight = Mathf.Lerp(anchorHeight, targetAnchorHeight, Time.deltaTime * TRANSLATION_SPEED);
 		joint.anchor = Vector3.up*anchorHeight;
 	}
 	
 	// Update is called once per frame
 	void Update () {
-		craneHeightSlider.value += Input.GetAxis("Mouse ScrollWheel")*Time.deltaTime*3.5f;
-		//craneHeightSlider.value += Input.GetAxis("Mouse ScrollWheel")*Time.deltaTime*3.5f;
+		targetAnchorHeight += Input.GetAxis("Mouse ScrollWheel") * Time.deltaTime * 40f;
 		LockCraneJoint();
 
 		if (Input.GetMouseButtonDown(0))
@@ -139,19 +131,12 @@ public class Builder : MonoBehaviour {
 		currXScale = Mathf.Lerp(currXScale, xScale, Time.deltaTime*TRANSLATION_SPEED);
 		currYScale = Mathf.Lerp(currYScale, yScale, Time.deltaTime*TRANSLATION_SPEED);
 		currZScale = Mathf.Lerp(currZScale, zScale, Time.deltaTime*TRANSLATION_SPEED);
-
-		if (isPlacingBlock)
+		if (Vector3.Distance(activeBlock.localScale, new Vector3(currXScale, currYScale, currZScale)) <= 0.001f)
 		{
-			timeElapsedSincePlaced += Time.deltaTime;
-		}
-		if (isPlacingBlock && timeElapsedSincePlaced >= 1f)
-		{
-			activeBlock.gameObject.AddComponent<BoxCollider>();
-			timeElapsedSincePlaced = 0f;
-			isPlacingBlock = false;
-		}
+			activeBlock.GetComponent<Rigidbody> ().detectCollisions = true;
+        }
 
-		if (Input.GetKeyDown(KeyCode.Space))
+		if (Input.GetKeyDown(KeyCode.Space) && activeBlock.GetComponent<Rigidbody>().detectCollisions == true)
 		{
 			PlaceBlock();
 		}
@@ -170,10 +155,9 @@ public class Builder : MonoBehaviour {
 
 		activeBlock = (Transform) Instantiate(blockPre, activeBlock.position, Quaternion.identity);
 		activeBlock.GetComponent<ConfigurableJoint>().connectedBody = cranePivot.GetComponent<Rigidbody>();
+		activeBlock.GetComponent<Rigidbody> ().detectCollisions = false;
 
-		isPlacingBlock = true;
-
-		craneHeightSlider.value += yScale / 25f;
+		targetAnchorHeight += yScale;
 
 		currXScale = 0f;
 		currYScale = 0f;
