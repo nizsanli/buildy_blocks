@@ -9,6 +9,8 @@ public class DrawGrid : MonoBehaviour {
 
 	public float resolution;
 
+	public Material lineMaterial;
+
 	// Use this for initialization
 	void Start () {
 		hLines = new LineRenderer[(int)resolution];
@@ -18,7 +20,7 @@ public class DrawGrid : MonoBehaviour {
 		{
 			Vector3 pos = new Vector3(-transform.localScale.x*0.5f, 0.001f, -transform.localScale.y*0.5f + (z/resolution)*transform.localScale.y);
 			LineRenderer line = (LineRenderer) Instantiate(linePre, pos, Quaternion.identity);
-			line.material = (Material) Resources.Load("Materials/Line");
+			line.material = lineMaterial;
 			line.SetPosition(0, Vector3.zero);
 			line.SetPosition(1, Vector3.right*transform.localScale.y);
 			hLines[z] = line;
@@ -29,7 +31,7 @@ public class DrawGrid : MonoBehaviour {
 		{
 			Vector3 pos = new Vector3(-transform.localScale.x*0.5f + (x/resolution)*transform.localScale.x, 0.001f, -transform.localScale.y*0.5f);
 			LineRenderer line = (LineRenderer) Instantiate(linePre, pos, Quaternion.identity);
-			line.material = (Material) Resources.Load("Materials/Line");
+			line.material = lineMaterial;
 			line.SetPosition(0, Vector3.zero);
 			line.SetPosition(1, Vector3.forward*transform.localScale.y);
 			vLines[x] = line;
